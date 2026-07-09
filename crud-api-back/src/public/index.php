@@ -1,7 +1,6 @@
 <?php 
 
 require_once __DIR__ . '/../config/config.php';
-require_once __DIR__ . '/openapi.php';
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
@@ -21,7 +20,6 @@ $uri = strtok($_SERVER['REQUEST_URI'], '?');
 match ($uri) {
     '/api/users' => require __DIR__ . '/../src/api.php',
     '/docs' => serveView(__DIR__ . '/../views/docs.html'),
-    '/openapi.json' => serveJson(__DIR__ . '/../openapi.json'),
     default => notFound(),
 };
 

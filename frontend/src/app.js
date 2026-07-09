@@ -1,6 +1,6 @@
 import { createUser } from '../src/scripts/api/create.js';
 import { renderUsers, findUserById } from '../src/scripts/dom/render.js';
-import { updateUser, pacthUser } from '../src/scripts/api/update.js';
+import { updateUser, patchUser } from '../src/scripts/api/update.js';
 import {deleteUser} from '../src/scripts/api/delete.js';
 
 const apiUrl = 'http://localhost:8000/api/users';
@@ -29,13 +29,33 @@ form.addEventListener('submit', async (event) => {
   hideError();
 
   try {
-    await createUser(apiUrl, { name, age, email });
+  if (editingId !== null){
+    //modo edição
+    const changed = {};
+    if (name !== originalUser.name ) changed.name = name;
+    if (Number(age) !== originalUser.age) changed.age = age;
+    if (email !== originalUser.email) changed.email = email;
 
-    form.reset();
-    renderUsers(apiUrl);
-  } catch (error) {
-    showError(error.message);
+    if (Object.keys(changed).length === 0){
+      exitEditMode()
+      return;
+    }
+    const allChanged = Object.keys(changed).length === 3;
+
+    if(allChanged) {
+      await updateUser(apiUrl , editingId, {name, age, email});
+    } else {
+      await patchUser(apiUrl, editingId, changed);
+    }
+  }else {
+    //modo criaçap
+    await createUser(apiUrl, {name,age,email});
   }
+  exitEditMode();
+  renderUsers(apiUrl);
+}catch (error) {
+  showError(error.message);
+}
 });
 
 function showError(message) {
@@ -50,7 +70,7 @@ function hideError() {
 
 function getUserFromCard(button){
   const card = button.closest('.user-card');
-  return findUserById(Number(card.id));
+  return findUserById(Number(card.dataset.id));
 }
 
 function enterEditMode(user){
@@ -82,22 +102,7 @@ cancelBtn.addEventListener('click', exitEditMode);
 usersSection.addEventListener('click', async (event) => {
   const {target} = event;
 
-  if(target.dataset.action === 'delete'){
-    const user = getUserFromCard(target);
-
-    if (!confirm('Are you sure tou want to delete this user ?')) return;
-
-    try {
-      await deleteUser(apiUrl, user.id);
-      renderUsers(apiUrl);
-    }catch {
-      showError(error.message);
-    }
-  }
-})
-
-usersSection.addEventListener('click', async (event) => {
-  const {target} = event;
+  const user = getUserFromCard(target);
 
   if (target.dataset.action === 'edit'){
     enterEditMode(getUserFromCard(target));
@@ -117,31 +122,3 @@ usersSection.addEventListener('click', async (event) => {
   }
 });
 
-try {
-  if (editingId !== null){
-    //modo edição
-    const changed = {};
-    if (name !== originalUser.name ) changed.name = name;
-    if (Number(age) !== originalUser.age) changed.age = age;
-    if (email !== originalUser.email) changed.email = email;
-
-    if (Object.keys(changed).length === 0){
-      exitEditMode()
-      return;
-    }
-    const allChanged = Object.keys(changed).length === 3;
-
-    if(allChanged) {
-      await updateUser(apiUrl , editingId, {name, age, email});
-    } else {
-      await pacthUser(apiUrl, editingId, changed);
-    }
-  }else {
-    //modo criaçap
-    await createUser(apiUrl, {name,age,email});
-  }
-  exitEditMode();
-  renderUsers(apiUrl);
-}catch (error) {
-  showError(error.message);
-}

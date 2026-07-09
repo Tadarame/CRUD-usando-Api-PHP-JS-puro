@@ -15,12 +15,12 @@ export async function updateUser(apiUrl, id,{name,age,email}) {
 
 //patch - parceial
 
-export async function pacthUser(apiUrl,id,fields) {
+export async function patchUser(apiUrl,id,fields) {
     if (fields.age != undefined){
-        fields.age = number(fields.age);
+        fields.age = Number(fields.age);
     }
 
-    const repsonse = await fetch (`${apiUrl}?id={id}`, {
+    const response = await fetch (`${apiUrl}?id=${id}`, {
         method: 'PATCH',
         headers : { 'Content-type' : 'application/json'},
         body : JSON.stringify(fields)
@@ -28,7 +28,7 @@ export async function pacthUser(apiUrl,id,fields) {
 
     const data = await response.json();
 
-    if(!repsonse.ok){
+    if(!response.ok){
         throw new Error (data.error || 'failed to patch user');
     }
     return data;
